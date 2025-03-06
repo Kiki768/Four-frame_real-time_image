@@ -1,13 +1,12 @@
 <?= $this->extend('template') ?>
 
 <?= $this->section('content') ?>
-    <!-- <h2>四格即時影像</h2> -->
-    <!-- 影片四宮格 -->
-    <div class="grid-container"> 
-        <video id="video1" autoplay muted loop src="/videos/video1.mp4"></video>
-        <video id="video2" autoplay muted loop src="/videos/video2.mp4"></video>
-        <video id="video3" autoplay muted loop src="/videos/video3.mp4"></video>
-        <video id="video4" autoplay muted loop src="/videos/video4.mp4"></video>
+    <h2>四格即時影像</h2>
+    <div class="grid-container">
+        <video id="video1" autoplay muted></video>
+        <video id="video2" autoplay muted></video>
+        <video id="video3" autoplay muted></video>
+        <video id="video4" autoplay muted></video>
     </div>
 
     <style>
@@ -22,8 +21,80 @@
         }
         video {
             width: 100%;
-            height: auto;
-            object-fit: cover;
+            height: 100%;
+            object-fit: cover; /* 讓影片填滿框架 */
+            display: block;
+            background: black; /* 防止影片載入前背景透明 */
         }
     </style>
+
+    <script>
+        async function loadVideos() {
+            try {
+                console.log("發送 API 請求: /LiveFeedController/api");
+                const response = await fetch('/LiveFeedController/api'); // 正確的 API 路徑
+                const data = await response.json();
+                console.log("API 回傳的影片清單:", data);
+
+                const videoMappings = {
+                    video1: data.folder1 || [],
+                    video2: data.folder2 || [],
+                    video3: data.folder3 || [],
+                    video4: data.folder4 || []
+                };
+
+                Object.keys(videoMappings).forEach(videoId => {
+                    const videoElement = document.getElementById(videoId);
+                    if (!videoElement) {
+                        console.error(`找不到 <video> 標籤: ${videoId}`);
+                        return;
+                    }
+                    if (videoMappings[videoId].length === 0) {
+                        console.warn(`影片 ${videoId} 沒有可播放的內容`);
+                        return;
+                    }
+
+                    console.log(`設定 ${videoId} 播放來源:`, videoMappings[videoId]);
+                    setupVideoLoop(videoElement, videoMappings[videoId]);
+                });
+
+            } catch (error) {
+                console.error("無法載入影片:", error);
+            }
+        }
+
+        function setupVideoLoop(videoElement, sources) {
+            if (sources.length === 0) {
+                console.warn(`影片 ${videoElement.id} 沒有來源，無法播放`);
+                return;
+            }
+
+            let index = 0;
+            console.log(`設定 ${videoElement.id} 播放來源:`, sources);
+
+            videoElement.src = sources[index];
+            videoElement.load();
+            videoElement.play().then(() => {
+                console.log(`▶️ ${videoElement.id} 開始播放`);
+            }).catch(error => console.warn(`影片 ${videoElement.id} 無法自動播放:`, error));
+
+            videoElement.addEventListener("ended", () => {
+                index = (index + 1) % sources.length;
+                console.log(`影片 ${videoElement.id} 切換到: ${sources[index]}`);
+                videoElement.src = sources[index];
+                videoElement.load();
+                videoElement.play().catch(error => console.warn(`影片 ${videoElement.id} 無法播放下一個:`, error));
+            });
+
+            videoElement.addEventListener("loadeddata", () => {
+                console.log(`影片 ${videoElement.id} 已準備好播放: ${videoElement.src}`);
+                videoElement.play().catch(error => console.warn(`影片 ${videoElement.id} 無法開始播放:`, error));
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            console.log("DOMContentLoaded 事件觸發，執行 loadVideos()");
+            loadVideos();
+        });
+    </script>
 <?= $this->endSection() ?>
