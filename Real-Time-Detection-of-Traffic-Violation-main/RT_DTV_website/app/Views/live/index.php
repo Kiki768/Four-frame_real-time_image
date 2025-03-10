@@ -32,7 +32,7 @@
         async function loadVideos() {
             try {
                 console.log("發送 API 請求: /LiveFeedController/api");
-                const response = await fetch('/LiveFeedController/api'); // 正確的 API 路徑
+                const response = await fetch('/LiveFeedController/api'); // 向後端請求影片來源
                 const data = await response.json();
                 console.log("API 回傳的影片清單:", data);
 
@@ -43,7 +43,7 @@
                     video4: data.folder4 || []
                 };
 
-                Object.keys(videoMappings).forEach(videoId => {
+                Object.keys(videoMappings).forEach(videoId => { // 遍歷 四個 <video> 元素 (video1~video4)
                     const videoElement = document.getElementById(videoId);
                     if (!videoElement) {
                         console.error(`找不到 <video> 標籤: ${videoId}`);
@@ -54,8 +54,8 @@
                         return;
                     }
 
-                    console.log(`設定 ${videoId} 播放來源:`, videoMappings[videoId]);
-                    setupVideoLoop(videoElement, videoMappings[videoId]);
+                    console.log(`設定 ${videoId} 播放來源:`, videoMappings[videoId]); 
+                    setupVideoLoop(videoElement, videoMappings[videoId]); //若有可播放的影片，則呼叫 setupVideoLoop() 來播放影片。 
                 });
 
             } catch (error) {
@@ -63,7 +63,7 @@
             }
         }
 
-        function setupVideoLoop(videoElement, sources) {
+        function setupVideoLoop(videoElement, sources) { // 設定 <video> 迴圈播放
             if (sources.length === 0) {
                 console.warn(`影片 ${videoElement.id} 沒有來源，無法播放`);
                 return;
@@ -73,20 +73,20 @@
             console.log(`設定 ${videoElement.id} 播放來源:`, sources);
 
             videoElement.src = sources[index];
-            videoElement.load();
+            videoElement.load(); 
             videoElement.play().then(() => {
-                console.log(`▶️ ${videoElement.id} 開始播放`);
+                console.log(`${videoElement.id} 開始播放`);
             }).catch(error => console.warn(`影片 ${videoElement.id} 無法自動播放:`, error));
 
             videoElement.addEventListener("ended", () => {
-                index = (index + 1) % sources.length;
+                index = (index + 1) % sources.length; // index = (index + 1) % sources.length 讓索引回到開頭
                 console.log(`影片 ${videoElement.id} 切換到: ${sources[index]}`);
                 videoElement.src = sources[index];
-                videoElement.load();
+                videoElement.load(); // 重新載入影片
                 videoElement.play().catch(error => console.warn(`影片 ${videoElement.id} 無法播放下一個:`, error));
             });
 
-            videoElement.addEventListener("loadeddata", () => {
+            videoElement.addEventListener("loadeddata", () => { // 影片載入完成後自動播放
                 console.log(`影片 ${videoElement.id} 已準備好播放: ${videoElement.src}`);
                 videoElement.play().catch(error => console.warn(`影片 ${videoElement.id} 無法開始播放:`, error));
             });
