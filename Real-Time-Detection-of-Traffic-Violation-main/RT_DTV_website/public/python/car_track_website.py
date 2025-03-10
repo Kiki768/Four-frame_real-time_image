@@ -34,7 +34,6 @@ light_model = light_model.to("cpu")
 async def car_track(video_path, output_folder, websocket = None, auto = 1):
 
 
-
     ##################################
     filename = os.path.basename(video_path)[:-4]
     print(filename)
@@ -76,6 +75,8 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1):
 
     video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
     
+    frames_cache = []  # 用來暫存所有影像與車輛ID的資訊
+
     while True:
         success, frame = cap.read()
         if success:
@@ -93,8 +94,11 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1):
                 #將預測結果寫入影片（就是那些框框）
                 annotated_frame = results[0].plot()
                 cv2.putText(annotated_frame, str(frame_num), (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255))
+                
                 video_writer.write(annotated_frame)
-
+    
+                frames_cache.append((frame.copy(), track_ids, boxes))  # 存影像與車輛ID
+                
                 #紀錄目前的車輛
                 current_cars = set(track_ids)
                 # print(current_cars, buffer)
@@ -138,6 +142,7 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1):
                 buffer.append(car_id)
             record_cars.clear()
             video_finished = 1
+        
         if len(buffer) >= buffer_size:
             #執行轉彎判斷及違規判斷
             print("執行轉彎判斷的車輛:", buffer[-buffer_size:])
@@ -158,7 +163,7 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1):
                     # 傳送訊息給前端網頁(實時偵測系統)
                     await websocket.send(json.dumps(event_data))
                     # 傳送訊息給PHP後端(get_violation_car_data)
-                    response = requests.post(os.path.join(ip,"get_violation_car_data"), json = event_data)
+                    response = response = requests.post(f"http://{ip}/get_violation_car_data", json=event_data)
                 print("沒有打方向燈的車輛:", light_cars)
             else:
                 print("沒有打方向燈的車輛: none")
@@ -166,7 +171,7 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1):
             # 移除buffer
             del buffer[-buffer_size:]
 
-        if len(buffer) == 0 and video_finished == 1:
+        if len(buffer) == 0 and video_finished == 1: #如果 buffer 為空，且影片已播放結束，則直接結束迴圈
             break
         elif len(buffer) < buffer_size and video_finished == 1:
             print("執行檢測的車輛:", buffer)
@@ -195,11 +200,38 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1):
             buffer.clear()
             break
 
+    # 創建新的影片寫入器
+    violation_video_path = output_folder + "/video_output/" + filename + "_violation.mp4"
+    violation_video_writer = cv2.VideoWriter(violation_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+
+    # 重新播放並標記違規車輛
+    for frame, track_ids, boxes in frames_cache:
+        violation_frame = frame.copy()  # 複製影像
+        
+        for box, track_id in zip(boxes, track_ids):
+            x, y, w, h = box
+            x1 = int(x - w / 2)
+            y1 = int(y - h / 2)
+            x2 = int(x1 + w)
+            y2 = int(y1 + h)
+
+            # 確保座標在合法範圍內
+            x1, y1 = max(x1, 0), max(y1, 0)
+            x2, y2 = min(x2, frame.shape[1] - 1), min(y2, frame.shape[0] - 1)
+
+            # 只標記違規車輛
+            if track_id in light_cars:
+                cv2.rectangle(violation_frame, (x1, y1), (x2, y2), (0, 0, 255), 3)  # 紅框
+        
+        # 寫入新影片
+        violation_video_writer.write(violation_frame)
+
+    violation_video_writer.release()  # 釋放影片資源
+
     model.predictor.trackers[0].reset()
     cap.release()
     video_writer.release()
     cv2.destroyAllWindows()
     print(list(car_info.keys()))
     print(len(car_info))        
-
 
