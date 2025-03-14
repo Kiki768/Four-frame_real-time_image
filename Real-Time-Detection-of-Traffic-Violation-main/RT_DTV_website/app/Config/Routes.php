@@ -24,6 +24,7 @@ $routes->get('FindController', 'FindController::index', ['filter' => ['auth']]);
 $routes->get('MonitorController', 'MonitorController::index', ['filter' => ['auth']]);
 // $routes->get('LiveFeedController/four_panel_monitor', 'LiveFeedController::four_panel_monitor');
 $routes->get('LiveFeedController', 'LiveFeedController::index');
+$routes->get('ViolationController', 'ViolationController::index');
 
 
 
