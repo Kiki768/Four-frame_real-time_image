@@ -12,26 +12,25 @@ from turn import turn_predict
 from light import light_predict
 from turn_model import *
 
-base_path = os.path.join(os.getcwd(), "python")
-weight_path = os.path.join(base_path, "weight")
-# device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu") #改用CPU
 
+base_path = os.path.join(os.getcwd(), "public", "python")
+weight_path = os.path.join(base_path, "weight")
 model = YOLO(os.path.join(weight_path, "yolov8n.pt"))
-model.to("cpu")
+model.to(device)
 
 turn_model = ResNet(ResidualBlock, [3,4,6,3])
-# turn_model.load_state_dict(torch.load(os.path.join(weight_path, "turn.pth"), map_location="cpu"))
-turn_model.load_state_dict(torch.load(r"C:\third\Project\Real-Time-Detection-of-Traffic-Violation-main\RT_DTV_website\public\python\weight\turn.pth", map_location="cpu"))
+turn_model.load_state_dict(torch.load(os.path.join(weight_path, "turn.pth"), map_location=device))
+turn_model = turn_model.to(device)
 
-turn_model = turn_model.to("cpu")
 
-light_model = YOLO(r"C:\third\Project\Real-Time-Detection-of-Traffic-Violation-main\RT_DTV_website\public\python\weight\light.pt")
-# light_model = YOLO(os.path.join(weight_path, "light.pt"))
-light_model = light_model.to("cpu")
+light_model = YOLO(os.path.join(weight_path, "light.pt"))
+light_model = light_model.to(device)
 
 
 
-async def car_track(video_path, output_folder, websocket = None, auto = 1):
+async def car_track(video_path, output_folder, websocket = None, auto = 1, video_source = "unknown"):
+
 
 
     ##################################
@@ -59,7 +58,7 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1):
     # 參數設定
     buffer_size = 16
     check_interval = 30
-    ip = "localhost:8080"                    
+    ip = "localhost:8081"                     
     #########################
 
     cap = cv2.VideoCapture(video_path)
@@ -68,15 +67,13 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1):
         return
 
     #output_video的width, height, fps設定
-    width, height, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+    #width, height, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
     
-    output_video_path = output_folder + "/video_output/" + filename + "_output.mp4"
-    print(output_video_path)
+    #output_video_path = output_folder + "/video_output/" + filename + "_output.mp4"
+    #print(output_video_path)
 
-    video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+    #video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
     
-    frames_cache = []  # 用來暫存所有影像與車輛ID的資訊
-
     while True:
         success, frame = cap.read()
         if success:
@@ -94,11 +91,8 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1):
                 #將預測結果寫入影片（就是那些框框）
                 annotated_frame = results[0].plot()
                 cv2.putText(annotated_frame, str(frame_num), (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255))
-                
-                video_writer.write(annotated_frame)
-    
-                frames_cache.append((frame.copy(), track_ids, boxes))  # 存影像與車輛ID
-                
+                #video_writer.write(annotated_frame)
+
                 #紀錄目前的車輛
                 current_cars = set(track_ids)
                 # print(current_cars, buffer)
@@ -142,7 +136,6 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1):
                 buffer.append(car_id)
             record_cars.clear()
             video_finished = 1
-        
         if len(buffer) >= buffer_size:
             #執行轉彎判斷及違規判斷
             print("執行轉彎判斷的車輛:", buffer[-buffer_size:])
@@ -158,12 +151,13 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1):
                         "car_id": light_cars,
                         "video_name": filename,
                         "video_path": video_path,
-                        "auto": auto  
+                        "auto": auto,
+                        "source": video_source  # 新增來源 (video1, video2, video3, video4)
                     }
                     # 傳送訊息給前端網頁(實時偵測系統)
                     await websocket.send(json.dumps(event_data))
                     # 傳送訊息給PHP後端(get_violation_car_data)
-                    response = response = requests.post(f"http://{ip}/get_violation_car_data", json=event_data)
+                    response = requests.post(os.path.join(ip,"get_violation_car_data"), json = event_data)
                 print("沒有打方向燈的車輛:", light_cars)
             else:
                 print("沒有打方向燈的車輛: none")
@@ -171,7 +165,7 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1):
             # 移除buffer
             del buffer[-buffer_size:]
 
-        if len(buffer) == 0 and video_finished == 1: #如果 buffer 為空，且影片已播放結束，則直接結束迴圈
+        if len(buffer) == 0 and video_finished == 1:
             break
         elif len(buffer) < buffer_size and video_finished == 1:
             print("執行檢測的車輛:", buffer)
@@ -193,45 +187,55 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1):
                     # 傳送訊息給前端網頁(實時偵測系統)
                     await websocket.send(json.dumps(event_data))
                     # 傳送訊息給PHP後端(get_violation_car_data)
-                    response = requests.post(f"http://{ip}/get_violation_car_data", json=event_data)# response = requests.post(os.path.join(ip,"get_violation_car_data"), json = event_data)
+                    #response = requests.post(os.path.join(ip,"get_violation_car_data"), json = event_data)
+                    response = requests.post(f"http://{ip}/get_violation_car_data", json=event_data)
+
                 print("沒有打方向燈的車輛:", light_cars)
             else:
                 print("沒有打方向燈的車輛: none")
             buffer.clear()
             break
 
-    # 創建新的影片寫入器
-    violation_video_path = output_folder + "/video_output/" + filename + "_violation.mp4"
-    violation_video_writer = cv2.VideoWriter(violation_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
-
-    # 重新播放並標記違規車輛
-    for frame, track_ids, boxes in frames_cache:
-        violation_frame = frame.copy()  # 複製影像
-        
-        for box, track_id in zip(boxes, track_ids):
-            x, y, w, h = box
-            x1 = int(x - w / 2)
-            y1 = int(y - h / 2)
-            x2 = int(x1 + w)
-            y2 = int(y1 + h)
-
-            # 確保座標在合法範圍內
-            x1, y1 = max(x1, 0), max(y1, 0)
-            x2, y2 = min(x2, frame.shape[1] - 1), min(y2, frame.shape[0] - 1)
-
-            # 只標記違規車輛
-            if track_id in light_cars:
-                cv2.rectangle(violation_frame, (x1, y1), (x2, y2), (0, 0, 255), 3)  # 紅框
-        
-        # 寫入新影片
-        violation_video_writer.write(violation_frame)
-
-    violation_video_writer.release()  # 釋放影片資源
-
     model.predictor.trackers[0].reset()
     cap.release()
-    video_writer.release()
+    #video_writer.release()
     cv2.destroyAllWindows()
     print(list(car_info.keys()))
     print(len(car_info))        
+
+async def process_video_folder(folder_path, output_folder, video_source):
+    """ 讓 car_track() 同時處理四個資料夾內的影片 """
+    video_files = sorted(os.listdir(folder_path))  # 讀取資料夾內所有影片
+    tasks = []
+    
+    for video_file in video_files:
+        video_path = os.path.join(folder_path, video_file)
+        if not video_file.endswith(".mp4"):  # 確保只處理 mp4 檔案
+            continue
+        print(f"處理影片 {video_path} 對應 {video_source}")
+
+        # **同時執行多個影片分析**
+        tasks.append(car_track(video_path, output_folder, None, 1, video_source))
+
+    await asyncio.gather(*tasks)  # **讓所有 car_track() 同時執行**
+
+async def start_all_video_processing():
+    """ 讓四個資料夾內的影片同時進行違規偵測 """
+    VIDEO_PATH = VIDEO_PATH = os.path.join(os.getcwd(), "public", "videos")
+
+
+    if not os.path.exists(VIDEO_PATH):
+        print(f"❌ 錯誤: 影片來源資料夾 {VIDEO_PATH} 不存在！請確認路徑是否正確。")
+        return
+    
+    tasks = [
+        process_video_folder(os.path.join(VIDEO_PATH, "folder1"), os.path.join(os.getcwd(), "public", "videos"), "video1"),
+        process_video_folder(os.path.join(VIDEO_PATH, "folder2"), os.path.join(os.getcwd(), "public", "videos"), "video2"),
+        process_video_folder(os.path.join(VIDEO_PATH, "folder3"), os.path.join(os.getcwd(), "public", "videos"), "video3"),
+        process_video_folder(os.path.join(VIDEO_PATH, "folder4"), os.path.join(os.getcwd(), "public", "videos"), "video4"),
+    ]
+    await asyncio.gather(*tasks)
+
+asyncio.run(start_all_video_processing())  # 啟動四個資料夾同時處理
+
 
