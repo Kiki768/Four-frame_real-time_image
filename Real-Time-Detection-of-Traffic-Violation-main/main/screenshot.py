@@ -42,7 +42,8 @@ def merge_picture(imgs):
     return result
 
 def save_img(violation_image, car_id, output_folder):
-    output_path = os.path.join(output_folder, "car"+str(car_id)+".jpg")
+    result_folder = os.path.join(os.getcwd(), "public", "result")
+    output_path = os.path.join(result_folder, f"{filename}_car{car_id}.jpg")
     cv2.imwrite(output_path, violation_image)
     # print("the result is saved in " + output_path)
 
@@ -75,7 +76,7 @@ def big_img(img, x, y, w, h, imgx, imgy):
 
 #從video的turn_data.csv取得某部轉彎車輛的資料
 #影片在車輛偵測就轉成一張張圖片存進frame中了
-def make_violation_image(four_imgs, four_bboxs, car_id, license_plate, output_folder):
+def make_violation_image(four_imgs, four_bboxs, car_id, license_plate, filename):
 
     imgs = []
     #處理前三張照片，取整個過程中40%, 60%, 80%的幀數訊息
@@ -107,7 +108,7 @@ def make_violation_image(four_imgs, four_bboxs, car_id, license_plate, output_fo
     violation_image = merge_picture(imgs)
 
     #儲存
-    save_img(violation_image, car_id, output_folder)
+    save_img(violation_image, car_id, filename)
     
      
     
