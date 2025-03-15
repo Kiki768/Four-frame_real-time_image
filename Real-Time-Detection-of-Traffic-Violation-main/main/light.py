@@ -60,7 +60,7 @@ def light_predict(model, light_info, output_folder, filename, save):
             save_light_info(light[0], id, output_folder, filename, save[3])
             if light[0] == 0:
                 license_plate = 'ccc-0001'
-                make_violation_image(violation_imgs, violation_bboxes, id, license_plate, violation_path)
+                make_violation_image(violation_imgs, violation_bboxes, id, license_plate, filename)
                 result.append(id)
             save_wave_img(light_box_num_list, id,  output_folder, save[3])
         return result  
