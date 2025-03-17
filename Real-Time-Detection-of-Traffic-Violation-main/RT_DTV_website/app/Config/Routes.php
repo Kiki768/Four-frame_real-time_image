@@ -25,7 +25,7 @@ $routes->get('MonitorController', 'MonitorController::index', ['filter' => ['aut
 // $routes->get('LiveFeedController/four_panel_monitor', 'LiveFeedController::four_panel_monitor');
 $routes->get('LiveFeedController', 'LiveFeedController::index');
 $routes->get('ViolationController', 'ViolationController::index');
-
+$routes->get('get_violation_images', 'ViolationController::get_violation_images');
 
 
 
