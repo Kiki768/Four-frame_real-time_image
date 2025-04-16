@@ -29,7 +29,9 @@ f. RT_DTV_website/app/Views/monitors/only_one_screen.php
 
 Line64 : ip(port同public/python/website.py)
 
+g. RT_DTV_website/app/Controllers/LiveFeedController.php
 
+Line45 : python_path(python環境執行檔 ex .../python.exe)
 
 
 ## 2.網站啟動指令
