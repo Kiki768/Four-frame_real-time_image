@@ -12,6 +12,13 @@ from turn import turn_predict
 from light import light_predict
 from turn_model import *
 
+# 加入 log 檔記錄
+log_path = os.path.join(os.getcwd(), "log.txt")
+with open(log_path, "a", encoding="utf-8") as f:
+    f.write("car_track_website.py 被觸發執行\n")
+
+
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu") #改用CPU
 
 base_path = os.path.join(os.getcwd(), "public", "python")
@@ -204,7 +211,7 @@ async def car_track(video_path, output_folder, websocket = None, auto = 1, video
     print(len(car_info))        
 
 async def process_video_folder(folder_path, output_folder, video_source):
-    """ 讓 car_track() 同時處理四個資料夾內的影片 """
+    """讓 car_track() 同時處理四個資料夾內的影片 """
     video_files = sorted(os.listdir(folder_path))  # 讀取資料夾內所有影片
     tasks = []
     
@@ -220,6 +227,9 @@ async def process_video_folder(folder_path, output_folder, video_source):
     await asyncio.gather(*tasks)  # **讓所有 car_track() 同時執行**
 
 async def start_all_video_processing():
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write("📁 開始處理四個資料夾的影片...\n")
+
     """ 讓四個資料夾內的影片同時進行違規偵測 """
     VIDEO_PATH = VIDEO_PATH = os.path.join(os.getcwd(), "public", "videos")
 
@@ -234,8 +244,13 @@ async def start_all_video_processing():
         process_video_folder(os.path.join(VIDEO_PATH, "folder3"), os.path.join(os.getcwd(), "public", "videos"), "video3"),
         process_video_folder(os.path.join(VIDEO_PATH, "folder4"), os.path.join(os.getcwd(), "public", "videos"), "video4"),
     ]
-    await asyncio.gather(*tasks)
 
-asyncio.run(start_all_video_processing())  # 啟動四個資料夾同時處理
+    await asyncio.gather(*tasks)    
+
+if __name__ == "__main__":
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write("✅ 進入 __main__，即將執行 asyncio.run()\n")
+
+    asyncio.run(start_all_video_processing())  # 啟動四個資料夾同時處理 
 
 

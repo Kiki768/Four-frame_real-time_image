@@ -29,7 +29,9 @@ f. RT_DTV_website/app/Views/monitors/only_one_screen.php
 
 Line64 : ip(port同public/python/website.py)
 
+g. RT_DTV_website/app/Controllers/LiveFeedController.php
 
+Line45 : python_path(python環境執行檔 ex .../python.exe)
 
 
 ## 2.網站啟動指令
@@ -67,3 +69,9 @@ c. 點擊自動偵測，並進入開發者模式，若主控台顯示訊息「we
 帳號 : a
 
 密碼 : a
+
+### 步驟5： 違規圖片儲存
+
+a. 執行public/python/car_track_website.py輸出的圖片會存在public/videos/result/影片名稱
+b. 將輸出圖片都移出影片檔的資料夾至public/videos/result
+
