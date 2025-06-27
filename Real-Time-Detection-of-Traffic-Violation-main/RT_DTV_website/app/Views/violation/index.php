@@ -29,7 +29,7 @@ table td {
 
 
 <div class="center-container">
-    <h2>違規管理</h2>
+    <h2>違規車輛取締結果</h2> 
 
     <!-- 影像顯示區 -->
     <div class="violation-container">
