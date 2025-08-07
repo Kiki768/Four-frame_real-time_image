@@ -50,17 +50,29 @@ class ViolationController extends BaseController
 
     public function delete_violation()
     {
-        $filename = $this->request->getGet('file');  // 取得前端傳來的檔案名稱
-        $filePath = FCPATH . 'videos/result/' . $filename;  // 檔案路徑
+        try {
+            $filename = $this->request->getGet('file');  // 取得前端傳來的檔案名稱
+            $filePath = FCPATH . 'videos/result/' . $filename;  // 檔案路徑
 
-        //echo "the path of delete is：" . $filePath . "<br>";
+            // 建立刪除備份資料夾
+            $deleteBackupDir = FCPATH . 'videos/result/deleted/';
+            if (!is_dir($deleteBackupDir)) {
+                mkdir($deleteBackupDir, 0777, true);
+            }    
+            // 備份圖片到 deleted 資料夾
+            $backupImagePath = $deleteBackupDir . $filename;
+            copy($filePath, $backupImagePath);
+            // 記錄到歷史紀錄（只記錄在 history.php 頁面）
+            $this->addToHistory($filename, '刪除');
+            unlink($filePath); // 刪除檔案
 
-        if (file_exists($filePath)) {
-            unlink($filePath);  // 刪除檔案
-            return $this->response->setJSON(['success' => true]);
-        } 
-        else {
-            return $this->response->setJSON(['success' => false, 'error' => '找不到檔案']);
+            return $this->response->setJSON(['success' => true, 'message' => '檔案已刪除並備份']);
+
+        } catch (\Throwable $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'error' => '刪除操作失敗：' . $e->getMessage()
+            ]);
         }
     }
     public function save_violation()
@@ -75,11 +87,18 @@ class ViolationController extends BaseController
             $filename = $data['filename'];
             $sourceImage = 'videos/result/' . $filename;  // 相對路徑給 <img>
             $imagePath = FCPATH . $sourceImage;           // 絕對路徑給 unlink()
+
             $targetDir = FCPATH . 'videos/result/confirm/';
             $targetImagePath = $targetDir . $filename;
             $targetHTML = $targetDir . pathinfo($filename, PATHINFO_FILENAME) . '.html';
 
+            if (!is_dir($targetDir)) {
+                mkdir($targetDir, 0777, true);
+            }
+
             copy($imagePath, $targetImagePath); //把圖片複製到confirm
+            $this->addToHistory($filename, '儲存');
+
             $imgUrl = base_url('videos/result/confirm/' . $filename);
 
             // HTML 內容
@@ -109,7 +128,6 @@ class ViolationController extends BaseController
             </body>
             </html>
             ";
-            // echo $imgUrl; exit;
 
             file_put_contents($targetHTML, $html);
 
@@ -124,6 +142,29 @@ class ViolationController extends BaseController
                 'error' => '伺服器錯誤：' . $e->getMessage()
             ]);
         }
+
+
+    }
+
+    private function addToHistory($filename, $action)
+    {
+        $logPath = WRITEPATH . 'logs/violation_history.csv';
+        $timestamp = date('Y-m-d H:i:s');
+        
+        // 確保 logs 目錄存在
+        $logDir = WRITEPATH . 'logs/';
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+
+        // 寫入 CSV 格式：圖片名稱,操作,時間
+        $logEntry = "$filename,$action,$timestamp\n";
+        
+        // 以附加模式寫入檔案
+        file_put_contents($logPath, $logEntry, FILE_APPEND | LOCK_EX);
+        
+        // 寫入除錯訊息到日誌檔
+        log_message('info', "違規處理歷史紀錄已新增：檔案={$filename}, 操作={$action}, 時間={$timestamp}");
     }
 
 
