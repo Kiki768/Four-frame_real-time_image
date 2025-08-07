@@ -22,11 +22,9 @@ $routes->get('UploadController', 'UploadController::index', ['filter' => ['auth'
 $routes->get('RunController', 'RunController::index', ['filter' => ['auth']]);
 $routes->get('FindController', 'FindController::index', ['filter' => ['auth']]);
 $routes->get('MonitorController', 'MonitorController::index', ['filter' => ['auth']]);
-// $routes->get('LiveFeedController/four_panel_monitor', 'LiveFeedController::four_panel_monitor');
 $routes->get('LiveFeedController', 'LiveFeedController::index');
 $routes->get('ViolationController', 'ViolationController::index');
 $routes->get('get_violation_images', 'ViolationController::get_violation_images');
-
-
-
 $routes->post('get_violation_car_data', 'MonitorController::get_violation_car_data');
+$routes->get('history', 'LiveFeedController::violation_history', ['filter' => ['auth']]);
+$routes->get('LiveFeedController/get_history', 'LiveFeedController::get_history', ['filter' => ['auth']]);
