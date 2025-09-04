@@ -80,6 +80,7 @@
         <a href="/FindController/find_car_with_monitor">搜尋違規車</a>
         <a href="/LiveFeedController">四格即時影像</a>
         <a href="/ViolationController">違規輸出管理</a>
+        <a href="/LiveFeedController/violation_history">違規單歷史紀錄</a>
         <a href="/LoginController/logout" class = "logout">登出</a>
     </div>
 
