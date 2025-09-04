@@ -132,7 +132,7 @@ function saveViolation() {
         .then(data => {
             if (data.success) {
                 alert("✅ 已儲存並移除！");
-                fetchImageListAndUpdate();  // 顯示下一張圖片
+                location.reload(); // 重新整理畫面，更新違規列表
             } else {
                 alert("❌ 儲存失敗：" + data.error);
             }
