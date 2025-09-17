@@ -11,10 +11,9 @@ class LiveFeedController extends BaseController
         return view('history/history');
     }
 
-    // 🔥 讓 http://localhost:8080/LiveFeedController 顯示前端畫面
     public function index()
     {
-        return view('live/index'); // 載入 Views/live/index.php
+        return view('live/index'); 
     }
 
     // 🔥 提供影片 API (http://localhost:8080/LiveFeedController/api)
@@ -46,39 +45,39 @@ class LiveFeedController extends BaseController
         return $this->response->setJSON($videoData);
     }
 
+
     public function start_detection()
-    {
-        try {
-            $pythonPath = 'C:\\Users\\vicky\\anaconda3\\envs\\pj11\\python.exe';
-            $scriptPath = realpath(FCPATH . '../public/python/car_track_website.py'); 
+{
+    // 資料夾名稱設定為 'error'
+    $video_name = 'C:\\Users\\vicky\\Desktop\\PJ74\\Real-Time-Detection-of-Traffic-Violation-main\\RT_DTV_website\\public\\python\\error';  
 
+    // 設定 main.py 的路徑
+    $python = 'C:\\Users\\vicky\\anaconda3\\envs\\pj11\\python.exe';
+    $script = 'C:\\Users\\vicky\\Desktop\\PJ74\\Real-Time-Detection-of-Traffic-Violation-main\\RT_DTV_website\\public\\python\\main.py';
 
-            if (!$scriptPath) {
-                throw new \Exception('找不到 Python 腳本 car_track_website.py');
-            }
-
-            // 設定 log 輸出路徑
-            $logPath = realpath(FCPATH . '../writable/logs/car_track_log.txt');
-            $command = "start /B \"\" \"$pythonPath\" \"$scriptPath\" > \"$logPath\" 2>&1";  // 在背景執行並輸出 log
-
-            // 使用 shell_exec 執行指令
-            shell_exec("cmd /c $command");
-
-            // 回傳成功訊息
-            return $this->response->setJSON([
-                'success' => true,
-                'message' => 'car_track_website.py 已在背景啟動',
-                'command' => $command
-            ]);
-
-        } catch (\Throwable $e) {
-            // 如果有錯誤，回傳錯誤訊息
-            return $this->response->setJSON([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
+    // 設定 log 文件儲存路徑
+    $logDir = WRITEPATH . 'logs';
+    if (!is_dir($logDir)) {
+        mkdir($logDir, 0775, true);
     }
+    $logFile = $logDir . DIRECTORY_SEPARATOR . uniqid('task_') . '.log';
+
+    // 設定工作目錄為 main.py 所在的資料夾
+    $workingDir = 'C:\\Users\\vicky\\Desktop\\PJ74\\Real-Time-Detection-of-Traffic-Violation-main\\RT_DTV_website\\public\\python';
+
+    // 執行命令，並設置工作目錄
+    $cmd = 'start "" ' .  escapeshellarg($python) . ' '
+         . escapeshellarg($script) . ' '
+         . '--name ' . escapeshellarg($video_name)  // 傳遞資料夾名稱 'error'
+         . ' >> ' . escapeshellarg($logFile) . ' 2>&1 &';
+
+    exec($cmd);
+
+    return $this->response->setJSON(['taskId' => uniqid('task_')]);
+}
+
+
+
 
     public function get_history()
     {
@@ -98,10 +97,28 @@ class LiveFeedController extends BaseController
                 }
             }
         }
-
         return $this->response->setJSON($history);
     }
 
 
-}
+    public function stop()
+    {
+        $storage = WRITEPATH.'detection';
+        $pidFile = $storage.DIRECTORY_SEPARATOR.'detector.pid';
+        $lockFile= $storage.DIRECTORY_SEPARATOR.'detector.lock';
 
+        $pid = file_exists($pidFile) ? trim(@file_get_contents($pidFile)) : '';
+        if ($pid !== '') {
+            // /T 連同子程序一併殺掉（cmd.exe -> python.exe）
+            exec('taskkill /PID '.((int)$pid).' /F /T');
+        }
+        @unlink($pidFile);
+        @unlink($lockFile); // 以防卡住
+
+        return $this->response->setJSON(['ok'=>true,'msg'=>'Stopped.'.($pid? " PID $pid":' (no pid)')]);
+    }
+
+
+    
+
+}
