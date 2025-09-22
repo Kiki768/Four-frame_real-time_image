@@ -48,35 +48,41 @@ class LiveFeedController extends BaseController
 
     public function start_detection()
 {
+    // 先記錄請求到達
+    log_message('info', 'start_detection method called');
+
     // 資料夾名稱設定為 'error'
     $video_name = 'C:\\Users\\vicky\\Desktop\\PJ74\\Real-Time-Detection-of-Traffic-Violation-main\\RT_DTV_website\\public\\python\\error';  
-
-    // 設定 main.py 的路徑
     $python = 'C:\\Users\\vicky\\anaconda3\\envs\\pj11\\python.exe';
     $script = 'C:\\Users\\vicky\\Desktop\\PJ74\\Real-Time-Detection-of-Traffic-Violation-main\\RT_DTV_website\\public\\python\\main.py';
+    $workingDir = 'C:\\Users\\vicky\\Desktop\\PJ74\\Real-Time-Detection-of-Traffic-Violation-main\\RT_DTV_website\\public\\python';
 
     // 設定 log 文件儲存路徑
     $logDir = WRITEPATH . 'logs';
     if (!is_dir($logDir)) {
         mkdir($logDir, 0775, true);
     }
-    $logFile = $logDir . DIRECTORY_SEPARATOR . uniqid('task_') . '.log';
 
-    // 設定工作目錄為 main.py 所在的資料夾
-    $workingDir = 'C:\\Users\\vicky\\Desktop\\PJ74\\Real-Time-Detection-of-Traffic-Violation-main\\RT_DTV_website\\public\\python';
+    $taskId  = uniqid('task_');
+    $logFile = $logDir . DIRECTORY_SEPARATOR . $taskId . '.log';
+    $errFile = $logDir . DIRECTORY_SEPARATOR . $taskId . '.err.log';
 
-    // 執行命令，並設置工作目錄
-    $cmd = 'start "" ' .  escapeshellarg($python) . ' '
-         . escapeshellarg($script) . ' '
-         . '--name ' . escapeshellarg($video_name)  // 傳遞資料夾名稱 'error'
-         . ' >> ' . escapeshellarg($logFile) . ' 2>&1 &';
+    $cmd = 'cmd /c "cd /d ' . escapeshellarg($workingDir) . ' && '
+     . 'start "" /b '
+     . escapeshellarg($python) . ' '
+     . escapeshellarg($script) . ' --name ' . escapeshellarg($video_name) . ' '
+     . '1>>' . escapeshellarg($logFile) . ' 2>>' . escapeshellarg($errFile) . '"';
 
-    exec($cmd);
+// 非阻塞
+pclose(popen($cmd, 'r'));
 
-    return $this->response->setJSON(['taskId' => uniqid('task_')]);
+return $this->response->setJSON([
+  'success' => true,
+  'taskId'  => $taskId,
+  'logFile' => basename($logFile),
+  'errFile' => basename($errFile),
+]);
 }
-
-
 
 
     public function get_history()
@@ -100,25 +106,5 @@ class LiveFeedController extends BaseController
         return $this->response->setJSON($history);
     }
 
-
-    public function stop()
-    {
-        $storage = WRITEPATH.'detection';
-        $pidFile = $storage.DIRECTORY_SEPARATOR.'detector.pid';
-        $lockFile= $storage.DIRECTORY_SEPARATOR.'detector.lock';
-
-        $pid = file_exists($pidFile) ? trim(@file_get_contents($pidFile)) : '';
-        if ($pid !== '') {
-            // /T 連同子程序一併殺掉（cmd.exe -> python.exe）
-            exec('taskkill /PID '.((int)$pid).' /F /T');
-        }
-        @unlink($pidFile);
-        @unlink($lockFile); // 以防卡住
-
-        return $this->response->setJSON(['ok'=>true,'msg'=>'Stopped.'.($pid? " PID $pid":' (no pid)')]);
-    }
-
-
-    
 
 }
