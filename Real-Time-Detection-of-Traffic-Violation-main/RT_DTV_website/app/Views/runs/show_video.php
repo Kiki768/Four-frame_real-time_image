@@ -29,9 +29,16 @@
 
     <script>
 
-        //  初始化 WebSocket 連線
-        ip = "localhost:6789";
-        socket = new WebSocket("ws://" + ip);
+        // 自動依照 http/https 選 ws/wss，主機用當前頁面的 host
+        const WS_PORT = 8081; // 你的 websocket:start 預設就是 6789
+        const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+        const host  = location.hostname || '127.0.0.1';
+        const wsURL = `${proto}://${host}:${WS_PORT}/`;
+
+        const loadingEl  = document.getElementById('loadingMessage');
+        const respEl     = document.getElementById('responseMessage');
+
+        let socket = new WebSocket(wsURL);
 
         socket.onopen = () => {
             console.log("WebSocket 已連線");

@@ -107,4 +107,24 @@ return $this->response->setJSON([
     }
 
 
+    // public function stop()
+    // {
+    //     $storage = WRITEPATH.'detection';
+    //     $pidFile = $storage.DIRECTORY_SEPARATOR.'detector.pid';
+    //     $lockFile= $storage.DIRECTORY_SEPARATOR.'detector.lock';
+
+    //     $pid = file_exists($pidFile) ? trim(@file_get_contents($pidFile)) : '';
+    //     if ($pid !== '') {
+    //         // /T 連同子程序一併殺掉（cmd.exe -> python.exe）
+    //         exec('taskkill /PID '.((int)$pid).' /F /T');
+    //     }
+    //     @unlink($pidFile);
+    //     @unlink($lockFile); // 以防卡住
+
+    //     return $this->response->setJSON(['ok'=>true,'msg'=>'Stopped.'.($pid? " PID $pid":' (no pid)')]);
+    // }
+
+
+    
+
 }

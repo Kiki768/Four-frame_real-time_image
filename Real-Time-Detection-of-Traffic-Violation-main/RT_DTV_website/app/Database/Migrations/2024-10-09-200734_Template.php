@@ -92,7 +92,7 @@ class Template extends Migration
             ]);
         $this->forge->addPrimaryKey('id');
         $this->forge->createTable('videos');
-
+//自動偵測拿掉應該不需要這個autovideos
         $this->forge->addField([
             'id'=>[
                 'type' => 'INT',

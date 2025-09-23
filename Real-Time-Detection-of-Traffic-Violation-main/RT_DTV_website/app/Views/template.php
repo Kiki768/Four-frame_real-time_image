@@ -76,7 +76,7 @@
         <a href="/Home">首頁</a>
         <a href="/UploadController">上傳影片</a>
         <a href="/RunController">手動偵測</a>
-        <a href="/MonitorController/only_one_screen">自動偵測</a>
+        <!--<a href="/MonitorController/only_one_screen">自動偵測</a>-->
         <a href="/FindController/find_car_with_monitor">搜尋違規車</a>
         <a href="/LiveFeedController">四格即時影像</a>
         <a href="/ViolationController">違規輸出管理</a>

@@ -44,7 +44,7 @@ class RunController extends BaseController
             $videoModel->update($video_row, $data);
 
             $task_id = uniqid('task_');
-            exec("C:\Users\96285\anaconda3\\envs\ml\python.exe C:\CCCProject\ccc_method\ccc_for_website.py --name $video_name > tmp/$task_id.log");
+            exec("C:\Users\\vicky\anaconda3\\envs\pj11\python.exe C:\Users\\vicky\Desktop\PJ74\Real-Time-Detection-of-Traffic-Violation-main\RT_DTV_website\public\python\main.py --name $video_name > tmp/$task_id.log");
             echo json_encode(['taskId' => $task_id]);
         }
         else
@@ -111,8 +111,11 @@ class RunController extends BaseController
             $count = $violatingCarModel->countAll() + 1;
             $license_plate = 'CCC-' . str_pad($count, 4, '0', STR_PAD_LEFT);
             $v_car = $violating_cars[$i];
-            $source = "C:\CCCProject\ccc_method\output_for_website\\" . substr($video_name, 0, -4) . "\\result\\car" . $v_car .".jpg";
-            $destination = "C:\CCCProject\RT_DTV\public\\violating_cars\\". $license_plate .".jpg";
+            $source = "C:\Users\\vicky\Desktop\PJ74\Real-Time-Detection-of-Traffic-Violation-main\RT_DTV_website\public\output\\error\\" . substr($video_name, 0, -4) . "\\violation\\car" . $v_car .".jpg";
+            $destination = "C:\Users\\vicky\Desktop\PJ74\Real-Time-Detection-of-Traffic-Violation-main\RT_DTV_website\public\\violating_cars\\". $license_plate .".jpg";
+            if (!is_dir($destDir)) {
+                mkdir($destDir, 0775, true); // 0775 權限，true 表示遞迴建立
+            }
             system("move $source $destination", $return_var);
             $img_path = "violating_cars/" . $license_plate .".jpg";
             $violating_data = [
@@ -122,7 +125,6 @@ class RunController extends BaseController
                 'video_path' => $video_row['video_path'],
                 'img_path' => $img_path,
             ];
-            // print_r($violating_data);
         }
 
         $violatingCarModel->save($violating_data);

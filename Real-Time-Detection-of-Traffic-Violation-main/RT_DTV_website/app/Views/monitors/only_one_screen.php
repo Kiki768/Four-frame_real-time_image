@@ -62,7 +62,7 @@
         }
 
         //  初始化 WebSocket 連線
-        ip = "localhost:6789";
+        ip = "localhost:6789/";
         socket = new WebSocket("ws://" + ip);
 
         socket.onopen = () => {

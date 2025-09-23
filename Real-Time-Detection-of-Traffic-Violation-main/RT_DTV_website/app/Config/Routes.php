@@ -16,15 +16,17 @@ $routes->setAutoRoute(true);
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/Home', 'Home::index', ['filter' => ['auth']]);
+
 $routes->get('/', 'LoginController::index', ['filter' => ['auth_home']]);
+$routes->get('Home', 'Home::index', ['filter' => ['auth']]);
+
 $routes->get('UploadController', 'UploadController::index', ['filter' => ['auth']]);
 $routes->get('RunController', 'RunController::index', ['filter' => ['auth']]);
 $routes->get('FindController', 'FindController::index', ['filter' => ['auth']]);
-// $routes->get('MonitorController', 'MonitorController::index', ['filter' => ['auth']]);
-$routes->get('ViolationController', 'ViolationController::index');
-$routes->get('get_violation_images', 'ViolationController::get_violation_images');
-$routes->post('get_violation_car_data', 'MonitorController::get_violation_car_data');
+//$routes->get('MonitorController', 'MonitorController::index', ['filter' => ['auth']])
+$routes->get('ViolationController', 'ViolationController::index', ['filter' => ['auth']]);
+$routes->get('get_violation_images', 'ViolationController::get_violation_images', ['filter' => ['auth']]);
+$routes->post('get_violation_car_data', 'MonitorController::get_violation_car_data', ['filter' => ['auth']]);
 $routes->get('history', 'LiveFeedController::violation_history', ['filter' => ['auth']]);
 $routes->group('LiveFeedController', ['filter' => ['auth']], function($routes) {
     $routes->get('/', 'LiveFeedController::index');
