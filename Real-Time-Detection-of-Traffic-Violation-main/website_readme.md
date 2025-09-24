@@ -13,8 +13,11 @@ Line45 : python_path(python環境執行檔 ex .../python.exe)
 c. RT_DTV_website/app/Controllers/LiveFeedController.php
 
 Line55 : $video_name(ex ...\\RT_DTV_website\\public\\python\\error 欲偵測的影片須放在此資料夾) 
+
 Line56 : $python(python環境執行檔 同b.)
+
 Line57 : $script(ex ...\\RT_DTV_website\\public\\python\\main.py)
+
 Line58 : $workingDir(ex...\\RT_DTV_website\\public\\python)
 
 
