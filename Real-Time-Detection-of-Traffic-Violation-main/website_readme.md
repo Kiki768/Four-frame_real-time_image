@@ -20,6 +20,8 @@ Line57 : $script(ex ...\\RT_DTV_website\\public\\python\\main.py)
 
 Line58 : $workingDir(ex...\\RT_DTV_website\\public\\python)
 
+d. 
+
 
 
 ## 2.網站啟動指令
@@ -58,3 +60,6 @@ b. 將輸出圖片都移出影片檔的資料夾至public/videos/result即可顯
 
    (這個部分的串接還在調整中，目前需要先手動移檔案)
 
+### 步驟6: 即時畫面影片來源
+
+a. 欲顯示在四格即時影像的影片須放在public/videos/folder1~4
