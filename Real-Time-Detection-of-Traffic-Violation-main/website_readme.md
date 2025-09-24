@@ -1,16 +1,16 @@
 ## 1.需要修改的路徑
 
-#a. RT_DTV_website/app/config/App.php
+a. RT_DTV_website/app/config/App.php
 
 Line20 : baseURL(架設的伺服器IP，可自行更改為想要的port)
 
 
-#b. RT_DTV_website/app/Controllers/LiveFeedController.php
+b. RT_DTV_website/app/Controllers/LiveFeedController.php
 
 Line45 : python_path(python環境執行檔 ex .../python.exe)
 
 
-#c. RT_DTV_website/app/Controllers/LiveFeedController.php
+c. RT_DTV_website/app/Controllers/LiveFeedController.php
 
 Line55 : $video_name(ex ...\\RT_DTV_website\\public\\python\\error 欲偵測的影片須放在此資料夾) 
 
