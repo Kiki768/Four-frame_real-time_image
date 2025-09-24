@@ -13,8 +13,11 @@ Line45 : python_path(python環境執行檔 ex .../python.exe)
 c. RT_DTV_website/app/Controllers/LiveFeedController.php
 
 Line55 : $video_name(ex ...\\RT_DTV_website\\public\\python\\error 欲偵測的影片須放在此資料夾) 
+
 Line56 : $python(python環境執行檔 同b.)
+
 Line57 : $script(ex ...\\RT_DTV_website\\public\\python\\main.py)
+
 Line58 : $workingDir(ex...\\RT_DTV_website\\public\\python)
 
 
@@ -50,6 +53,8 @@ b. 輸入帳密後，進到首頁
 ### 步驟5： 違規圖片儲存
 
 a. 執行public/python/main.py輸出的圖片會存在public/output/error/影片名稱/violation
+
 b. 將輸出圖片都移出影片檔的資料夾至public/videos/result即可顯示在違規管理中
+
    (這個部分的串接還在調整中，目前需要先手動移檔案)
 
