@@ -56,6 +56,7 @@ b. 輸入帳密後，進到首頁
 
 a. 執行public/python/main.py輸出的圖片會存在public/output/error/影片名稱/violation
 
+
 b. 將輸出圖片都移出影片檔的資料夾至public/videos/result即可顯示在違規管理中
 
    (這個部分的串接還在調整中，目前需要先手動移檔案)
