@@ -2,36 +2,21 @@
 
 a. RT_DTV_website/app/config/App.php
 
-Line20 : baseURL(架設的伺服器IP)
+Line20 : baseURL(架設的伺服器IP，可自行更改為想要的port)
 
 
-b. RT_DTV_website/app/Commands/Websocket.php
-
-Line16 : python_path(python環境執行檔 ex .../python.exe)
-
-
-c. RT_DTV_website/public/python/car_track_website.py
-
-Line70 : ip(同baseURL)
-
-
-d. RT_DTV_website/public/python/website.py
-
-Line11 : WEBSOCKET_PORT 可以改成自己想要的PORT
-
-
-e. RT_DTV_website/app/Views/runs/show_video.php
-
-Line33 : ip(port同public/python/website.py)
-
-
-f. RT_DTV_website/app/Views/monitors/only_one_screen.php
-
-Line64 : ip(port同public/python/website.py)
-
-g. RT_DTV_website/app/Controllers/LiveFeedController.php
+b. RT_DTV_website/app/Controllers/LiveFeedController.php
 
 Line45 : python_path(python環境執行檔 ex .../python.exe)
+
+
+c. RT_DTV_website/app/Controllers/LiveFeedController.php
+
+Line55 : $video_name(ex ...\\RT_DTV_website\\public\\python\\error 欲偵測的影片須放在此資料夾) 
+Line56 : $python(python環境執行檔 同b.)
+Line57 : $script(ex ...\\RT_DTV_website\\public\\python\\main.py)
+Line58 : $workingDir(ex...\\RT_DTV_website\\public\\python)
+
 
 
 ## 2.網站啟動指令
@@ -44,12 +29,6 @@ Line45 : python_path(python環境執行檔 ex .../python.exe)
 
 ![image](https://github.com/candycca/CCU-Headlight-violation-detection-system/blob/main/docs/php.png)
 
-### 步驟3： 輸入指令 php spark websocket:start (開啟python程式)
-
-成功會顯示以下畫面
-
-![image](https://github.com/candycca/CCU-Headlight-violation-detection-system/blob/main/docs/websocket.png)
-
 ### 步驟4：檢查網頁是否成功啟動
 
 a. 點擊步驟1生成的網址，進入登入畫面
@@ -60,18 +39,17 @@ b. 輸入帳密後，進到首頁
 
 ![image](https://github.com/candycca/CCU-Headlight-violation-detection-system/blob/main/docs/首頁.png)
 
-c. 點擊自動偵測，並進入開發者模式，若主控台顯示訊息「websocket已連線」即代表成功啟動
-
-![image](https://github.com/candycca/CCU-Headlight-violation-detection-system/blob/main/docs/成功.png)
-
 ## 3.網頁登入的帳密
 
 帳號 : a
 
 密碼 : a
 
+也可自行註冊帳號
+
 ### 步驟5： 違規圖片儲存
 
-a. 執行public/python/car_track_website.py輸出的圖片會存在public/videos/result/影片名稱
-b. 將輸出圖片都移出影片檔的資料夾至public/videos/result
+a. 執行public/python/main.py輸出的圖片會存在public/output/error/影片名稱/violation
+b. 將輸出圖片都移出影片檔的資料夾至public/videos/result即可顯示在違規管理中
+   (這個部分的串接還在調整中，目前需要先手動移檔案)
 
