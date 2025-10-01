@@ -8,7 +8,6 @@ import csv
 from turn import turn_predict
 from light import light_predict
 from turn_model import *
-import glob
 
 from model_max import MyModel
 import config_max
@@ -31,7 +30,7 @@ model.to(device)
 # ResNet 是一種深度卷積神經網絡架構，通過引入殘差塊（Residual Block）解決了深層網絡中的梯度消失問題，使得模型可以在更深的結構中進行有效的訓練。
 # [3,4,6,3] 代表有四層，每層的殘差塊數量
 turn_model = ResNet(ResidualBlock, [3,4,6,3])
-turn_model.load_state_dict(torch.load(os.path.join(weight, "turn.pth"), map_location=device))
+turn_model.load_state_dict(torch.load(os.path.join(weight, "turn.pth"), map_location='cuda:0'))
 turn_model = turn_model.to(device)
 
 
@@ -46,7 +45,7 @@ classnum = config_max.classnum
 nhead = config_max.nhead
 dropout_rate = config_max.dropout_rate
 transformer_model = MyModel(num_layers, classnum, nhead, dropout_rate)
-transformer_model.load_state_dict(torch.load(weight_path, map_location=device))
+transformer_model.load_state_dict(torch.load(weight_path))
 transformer_model = transformer_model.to(device)
 
 
@@ -56,7 +55,7 @@ def car_track(video_path, output_folder, save, turn):
     # 取得 video 的名稱，並去除 .mp4 的副檔名
     filename = os.path.basename(video_path)[:-4]
     # print("影片：", filename)
-    print("video：", filename)
+    print("\nvideo: ", filename)
     
     # defaultdict 是 Python 的 collections 模組中的一個類別，它是對標準字典（dict）的擴充。defaultdict 會為每個新鍵提供一個默認值，而不會引發 KeyError 異常。
     # dict 是 defaultdict 的默認工廠函數，這表示如果某個鍵不存在，會自動創建並返回一個新的空字典（{}）
@@ -83,7 +82,7 @@ def car_track(video_path, output_folder, save, turn):
 
     # 參數設定
     buffer_size = 16
-    check_interval = 30          
+    check_interval = 30                     
     #########################
 
     # 使用 OpenCV 的 VideoCapture 類別來開啟指定路徑的影片檔案
@@ -102,10 +101,15 @@ def car_track(video_path, output_folder, save, turn):
         video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*'VP80'), fps, (width, height))
         # video_writer = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
 
+    orig_frame_h, orig_frame_w = 536, 960
 
     while True:
         success, frame = cap.read()
         if success:
+            
+            if frame_num == 0:
+                orig_frame_h, orig_frame_w, _ = frame.shape
+            
             frame_num += 1
             # yoloV8 啟動
             # persist=True 表示在多幀間持續追蹤目標
@@ -202,7 +206,7 @@ def car_track(video_path, output_folder, save, turn):
             # buffer 儲存的是 track_id 也就是 car_id 也就是 key
             # turn_info 會依據 buffer 內儲存的 car_id，從 car_info 字典內複製相應的 car_id 的資訊
             turn_info = {key: car_info[key] for key in buffer[-buffer_size:]}
-            turn_cars, turn_way = turn_predict(turn_model, turn_info, output_folder, filename, save, turn)
+            turn_cars, turn_way = turn_predict(turn_model, turn_info, output_folder, filename, save, turn, orig_frame_h, orig_frame_w)
             
             # print("轉彎的車輛", turn_cars)
             print("Turning cars: ", turn_cars)
@@ -233,7 +237,7 @@ def car_track(video_path, output_folder, save, turn):
             print("Cars performing turn detection: ", sorted(buffer))
             
             turn_info = {key: car_info[key] for key in buffer}
-            turn_cars, turn_way = turn_predict(turn_model, turn_info, output_folder, filename, save, turn)
+            turn_cars, turn_way = turn_predict(turn_model, turn_info, output_folder, filename, save, turn, orig_frame_h, orig_frame_w)
             
             # print("轉彎的車輛", turn_cars)
             print("Turning cars: ", turn_cars)
@@ -261,43 +265,6 @@ def car_track(video_path, output_folder, save, turn):
     cv2.destroyAllWindows()
     #print(list(car_info.keys()))
     #print(len(car_info))        
-
-# if __name__ == "__main__":
-#     import argparse, json, glob
-#     from pathlib import Path
-
-#     THIS_DIR = Path(__file__).resolve().parent  # 以 car_track.py 所在位置為基準
-
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("--video_root", type=str, default="../videos/test")
-#     parser.add_argument("--output", type=str, default="../videos/result",
-#                         help="違規圖片輸出資料夾")
-#     parser.add_argument("--save", type=str, default="[0,0,0,0]")
-#     parser.add_argument("--turn", type=str, choices=["l","r","n"], default="n",
-#     help="轉向方式: l=左, r=右, n=不判斷")
-#     args = parser.parse_args()
-
-#     # save 轉成 list
-#     try:
-#         save = json.loads(args.save)
-#     except Exception:
-#         save = [int(x) for x in args.save.split(",")]
-
-#     # 路徑轉絕對
-#     video_root = (THIS_DIR / args.video_root).resolve()
-#     output_dir = (THIS_DIR / args.output).resolve()
-#     output_dir.mkdir(parents=True, exist_ok=True)
-
-#     # 蒐集單一資料夾的 mp4
-#     video_files = glob.glob(str(video_root / "*.mp4"))
-
-
-#     print(f"[DEBUG] video_root={video_root}")
-#     print(f"[DEBUG] 發現 {len(video_files)} 支影片，輸出至 {output_dir}")
-
-#     for v in video_files:
-#         print(f"[DEBUG] 正在處理 {v}")
-#         car_track(v, str(output_dir), save, args.turn)
 
 
 

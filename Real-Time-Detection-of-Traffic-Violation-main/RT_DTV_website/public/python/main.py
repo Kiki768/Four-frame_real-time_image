@@ -93,7 +93,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # 獲取當前時間，記錄為程式開始執行的時間
-# start_time = time.time()
+start_time = time.time()
 
 # 取得從命令行參數 --name 指定的輸入資料夾名稱
 input_folder = args.name
@@ -117,6 +117,9 @@ input_folder_name = os.path.basename(input_folder)
 
 # 在目前目錄下建立存放所有結果的資料夾路徑，路徑結構為 "current_dir/output/input_folder_name"
 all_output_folder = os.path.join(current_dir, "output", input_folder_name) # 存所有結果的資料夾
+
+# all_output_folder = os.path.join("E:/College_Project", "output", input_folder_name) # 存所有結果的資料夾
+
 # 建立存放結果的資料夾，若資料夾已存在則不拋出例外
 os.makedirs(all_output_folder, exist_ok=True)
 
@@ -152,7 +155,8 @@ for filename in os.listdir(input_folder):
 
 
 
-# end_time = time.time()
-# duration_seconds = end_time - start_time
+end_time = time.time()
+duration_seconds = end_time - start_time
 
 # print("Time：", duration_seconds, "秒")  
+print("Time: ", duration_seconds, " seconds")  

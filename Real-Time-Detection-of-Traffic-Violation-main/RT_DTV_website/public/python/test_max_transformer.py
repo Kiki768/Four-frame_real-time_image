@@ -24,20 +24,59 @@ class_names = [0, 1]
 device = config_max.device
 
 def predict_test_data(model, images):
+    """
+    將輸入的影像序列分割成不重疊的 window_size 大小的窗口進行預測
+    這樣可以保持與訓練時相同的輸入格式，提升模型準確度
     
-    img_tensors = [test_transforms(img) for img in images]
-    batch = torch.stack(img_tensors).unsqueeze(0).to(device)  # shape: (1, seq_len, 3, 224, 224)
+    Args:
+        model: 訓練好的模型
+        images: 一輛車的所有影像幀列表 (通常為 ~200 幀)
     
+    Returns:
+        list: 包含每幀預測結果的列表 [[pred1, pred2, ..., predN]]
+    
+    處理流程:
+        1. 將 ~200 幀分割成多個不重疊的 8 幀窗口
+        2. 每個窗口分別送入模型預測
+        3. 將所有窗口的預測結果組合成完整序列
+        4. 最後不足 8 幀的部分也會組成一個窗口進行預測
+    """
+    window_size = config_max.window_size  # 通常為 8
     model.eval() # 切換模型為評估模式
-    predictions = [] # 預測類別名稱列表
-    # img_list_names = [] # 對應的序列名稱
-    check = 0
-    with torch.no_grad():# 禁用梯度計算，也不進行反向傳播     
-        true_len = len(images)
-        outputs = model(batch, true_len)
-        _, predicted = torch.max(outputs, 2)
-        predictions.append([class_names[p] for p in predicted[0][:true_len]])
-    return predictions
+    all_predictions = [] # 儲存所有窗口的預測結果
+    
+    print(f"Processing {len(images)} frames with window_size={window_size}")
+    
+    with torch.no_grad(): # 禁用梯度計算，也不進行反向傳播
+        # 將影像序列分割成不重疊的窗口 (step = window_size)
+        num_windows = (len(images) + window_size - 1) // window_size  # 計算總窗口數
+        
+        for window_idx in range(num_windows):
+            start = window_idx * window_size
+            end = min(start + window_size, len(images))
+            window_images = images[start:end]
+            
+            if config_max.test_max_transformer_debug_msg:
+                print(f"Processing window {window_idx + 1}/{num_windows}: frames {start+1}-{end}")
+            
+            # 對當前窗口進行預處理
+            img_tensors = [test_transforms(img) for img in window_images]
+            batch = torch.stack(img_tensors).unsqueeze(0).to(device)  # shape: (1, window_len, 3, 224, 224)
+            
+            # 對當前窗口進行預測
+            true_len = len(window_images)
+            outputs = model(batch, true_len)
+            _, predicted = torch.max(outputs, 2)
+            
+            # 收集當前窗口的預測結果
+            window_predictions = [class_names[p] for p in predicted[0][:true_len]]
+            all_predictions.extend(window_predictions)
+            
+            if config_max.test_max_transformer_debug_msg:
+                print(f"Window predictions: {window_predictions}")
+    
+    print(f"Total predictions: {len(all_predictions)} frames")
+    return [all_predictions]  # 保持原本的返回格式 (list of list)
 
 def transformer(model, imgs, filename, car_id, output_folder):
 

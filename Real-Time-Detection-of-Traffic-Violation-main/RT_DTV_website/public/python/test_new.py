@@ -7,10 +7,9 @@ from tqdm import tqdm
 import sys
 from PIL import Image
 from test_max_transformer import transformer
+from config_max import draw_bbox
 
 def light_process(filename, car_id, car_imgs, model, transformer_model, output_folder, turn):
-
-    draw_bbox = 1
     
     # print(f"[DEBUG] 車輛 {car_id} 的轉向為: {turn}")
     print(f"[DEBUG] Car {car_id} turn direction: {turn}")
@@ -34,7 +33,8 @@ def light_process(filename, car_id, car_imgs, model, transformer_model, output_f
 
     # 建立輸出資料夾（如果還沒存在）
     # os.makedirs(OUTPUT_DIR, exist_ok=True)
-    os.makedirs(OUTPUT_WITH_BOX_DIR, exist_ok=True)
+    if draw_bbox:
+        os.makedirs(OUTPUT_WITH_BOX_DIR, exist_ok=True)
 
     # os.makedirs(OUTPUT_WITH_BOX, exist_ok=True)
     # os.makedirs(OUTPUT_ONLY_BOX, exist_ok=True)
@@ -67,7 +67,9 @@ def light_process(filename, car_id, car_imgs, model, transformer_model, output_f
     output_with_bbox_folder = os.path.join(OUTPUT_WITH_BOX_DIR, filename)
     
     os.makedirs(output_folder, exist_ok=True)
-    os.makedirs(output_with_bbox_folder, exist_ok=True)
+    
+    if draw_bbox:
+        os.makedirs(output_with_bbox_folder, exist_ok=True)
     
     # row_match = df[df['影片名稱'] == filename]
 
@@ -156,10 +158,21 @@ def light_process(filename, car_id, car_imgs, model, transformer_model, output_f
             output_with_box_path = os.path.join(output_with_bbox_folder, f"car{car_id}_{frame_num}.jpg")
             cv2.imwrite(output_with_box_path, img_with_boxes)
 
-    print(f"✔ light_process() saved, no_bbox_count: {no_bbox}")
-    light_box_num_list = transformer(transformer_model, cropped_imgs, filename, car_id, output_folder)
-    #light_box_num_list = transformer(transformer_model, car_imgs, filename, car_id, output_folder)
-    '''
+    total_car_imgs = len(car_imgs)
+    cropped_imgs_count = len(cropped_imgs)
+    
+    print(f"light_process() saved, no_bbox: {no_bbox}, total: {total_car_imgs}, remaining: {cropped_imgs_count}")
+
+    # 檢查是否需要製作假的 light_box_num_list
+    # 如果 no_bbox 超過 car_imgs 數量的 80%，或者 cropped_imgs 數量少於 20 張
+    if (no_bbox > total_car_imgs * 0.8) or (cropped_imgs_count < 20):
+        print(f"[INFO] Creating fake light_box_num_list due to insufficient data:")
+        print(f"       Total car images: {total_car_imgs}, No bbox: {no_bbox} ({no_bbox/total_car_imgs*100:.1f}%)")
+        print(f"       Cropped images: {cropped_imgs_count}")
+        light_box_num_list = [1]  # 假設車輛有使用方向燈
+    else:
+        light_box_num_list = transformer(transformer_model, cropped_imgs, filename, car_id, output_folder)
+    
     # Draw bbox with colors based on light_box_num_list values
     if draw_bbox:
         OUTPUT_WITH_BOX_LIGHT_DIR = os.path.expanduser("../output/with_bbox_light")
@@ -222,6 +235,6 @@ def light_process(filename, car_id, car_imgs, model, transformer_model, output_f
             output_with_colored_box_path = os.path.join(output_with_bbox_light_folder, f"car{car_id}_{frame_num}.jpg")
             cv2.imwrite(output_with_colored_box_path, img_with_colored_boxes)
             img_index += 1
-    '''
+    
     return light_box_num_list
     

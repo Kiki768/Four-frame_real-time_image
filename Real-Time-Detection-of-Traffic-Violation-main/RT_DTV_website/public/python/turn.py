@@ -5,9 +5,6 @@ import os
 import csv
 from tqdm import tqdm
 from turn_model import make_test_dataloader
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
 #存car_img
 def save_carimg(frame_info, id, output_folder, save):
     if save:
@@ -40,7 +37,7 @@ def save_turn_info(results, car_id, output_folder, filename, save):
         
 
 # 畫軌跡
-def draw(track_info, output_folder, save):      
+def draw(track_info, output_folder, save, orig_frame_h, orig_frame_w):      
     car_id= []
     imgs = []
     
@@ -50,8 +47,8 @@ def draw(track_info, output_folder, save):
             print(f"[Warning] Car {id} has empty frame_info, skipping")
             continue
         points = []  # 用來儲存每幀車輛的座標點
-        start_coor = frame_info[list(frame_info.keys())[0]]['bboxes']  # 取得第一幀的車輛邊界框座標 (x1, y1, x2, y2)
-        end_coor = frame_info[list(frame_info.keys())[-1]]['bboxes']  # 取得最後一幀的車輛邊界框座標 (x1, y1, x2, y2)
+        start_coor = frame_info[list(frame_info.keys())[0]]['bboxes']  # 取得第一幀的車輛邊界框座標 (x, y, w, h)
+        end_coor = frame_info[list(frame_info.keys())[-1]]['bboxes']  # 取得最後一幀的車輛邊界框座標 (x, y, w, h)
         frame_num = 0
         for _, info in frame_info.items():
             frame_num = frame_num + 1  
@@ -68,7 +65,8 @@ def draw(track_info, output_folder, save):
         dis = (y2 - y1)**2 + (x2 - x1)**2  # 以 pixel 為單位，距離的平方
         # if frame_num > 35 and (y2 - y1) < 0 and dis > 10000:
         # dis > 10000 相當於剛出現的位置與消失的位置，直線距離在 100 pixel 內，過濾掉路邊停車等沒有在動的車
-        if frame_num > 35 and (y2 - y1) < 0 and dis > 10000:
+        # 並且車輛消失的位置不能在監視器影像畫面上方的 20% 區域內， orig_frame_h 是指原始監視器輸入的 frame 的高度 (y 方向)，以 pixel 為單位
+        if frame_num > 35 and (y2 - y1) < 0 and dis > 10000 and y2 > 0.2 * orig_frame_h:
         # if (y2 - y1) < 0:
             # if frame_num <= 35: print(f"car {id}'s frame_num {frame_num} <= 35")
             # if dis <= 10000: print(f"car {id}'s moving distance {np.sqrt(dis)} pixel <= 100 pixel")
@@ -93,11 +91,11 @@ def draw(track_info, output_folder, save):
 
 class_names = ['left', 'right', 'straight'] 
 
-def turn_predict(model, track_info, output_folder, filename, save, turn):
+def turn_predict(model, track_info, output_folder, filename, save, turn, orig_frame_h, orig_frame_w):
     turn_car = []
     results = []
     turn_way = []
-    car_id, track_imgs = draw(track_info, output_folder, save)
+    car_id, track_imgs = draw(track_info, output_folder, save, orig_frame_h, orig_frame_w)
     if not car_id:
         return turn_car, turn_way
     else:
@@ -110,7 +108,7 @@ def turn_predict(model, track_info, output_folder, filename, save, turn):
             # 使用 for 迴圈逐批次讀取 test_loader 中的影像資料。
             for images in tqdm(test_loader, desc="Predicting", disable=True):
                 # 每次處理 4 張影像（大小為批次大小），並將影像移到 GPU（cuda:0）上進行計算
-                images = images.to(device)
+                images = images.to("cuda:0")
                 # 取得模型評估的結果，這裡的模型使用 ResNet
                 outputs = model(images)
                 # 使用 torch.max(outputs, 1) 找到每張影像分數最高的類別索引

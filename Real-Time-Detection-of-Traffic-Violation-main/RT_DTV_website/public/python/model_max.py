@@ -85,7 +85,7 @@ class PositionalEncoding(nn.Module):
 
 class MyModel(nn.Module): # 定義一個繼承自 nn.Module 的類 MyModel，這是 PyTorch 中所有神經網絡模型的基類
     # 初始化函數
-    def __init__(self, num_layers, output_size, nhead, dropout_rate=0.4, embed_dim=512, max_seq_len=5120):
+    def __init__(self, num_layers, output_size, nhead, dropout_rate=0.0, embed_dim=512, max_seq_len=5120):
         # num_layers: Transformer 編碼器的層數
         # output_size：輸出類別數。
         # nhead：Transformer 的多頭注意力機制（multi-head attention）的頭數量。
