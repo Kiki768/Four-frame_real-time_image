@@ -105,16 +105,17 @@
 ## 文件結構
 
 ```bash
-|-- Real-Time-Detection-of-Traffic-Violation/
+|-- Real-Time-Detection-of-Traffic-Violation-main/
     |-- turn_model_train/  # 轉彎模型訓練    
     |-- light_model_train/ # 車燈模型訓練
         |--train.py  
     |-- main/              # 系統主程式
         |--weight/
-           |--yolov8n.pt   # 車輛追蹤
+           |--yolo11m.pt   # 車輛追蹤
            |--turn.pth     # 轉彎判斷
-           |--light.pt     # 車燈判斷
-        |--screenshot.py
+           |--light.pt     # 方向燈亮暗與違規判斷
+           |--transformer_yolo_weight.pth   # 方向燈亮暗狀態判斷
+           |--yolo_light_train2_best.pt     # 方向燈區域擷取
         |--main.py
         |--car_track.py    # 車輛偵測
         |--turn.py         # 轉彎判斷
@@ -129,8 +130,7 @@
         |-- database/            # SQLite3 資料庫
         |-- public/              # 前端文件
             |-- style.css        # 前端樣式
-        |-- scripts/             # 訓練與測試的 Python 腳本
-            |-- main_website.py  # 網站自動化偵測違規
+            |-- output           # 存放四格即時影像違規車
     |-- output/                             # 存放所有結果
         |-- demo_video/
             |-- video/
