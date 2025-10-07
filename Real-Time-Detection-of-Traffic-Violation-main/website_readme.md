@@ -20,7 +20,9 @@ Line57 : $script(ex ...\\RT_DTV_website\\public\\python\\main.py)
 
 Line58 : $workingDir(ex...\\RT_DTV_website\\public\\python)
 
-d. 
+d.  RT_DTV_website/public/python/main.py
+
+Line12 : 你的 SQLite 檔(ex...\\RT_DTV_website\\writable\\database\\news.db)
 
 
 
