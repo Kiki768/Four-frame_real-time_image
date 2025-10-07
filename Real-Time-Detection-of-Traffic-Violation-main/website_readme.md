@@ -69,8 +69,8 @@ b. 欲偵測的影像須放在...\\RT_DTV_website\\public\\python\\error
 
 ##網站操作手冊
 
-![image](Real-Time-Detection-of-Traffic-Violation-main/RT_DTV_website/public/pictures/tutorial_1.png)
+![image](RT_DTV_website/public/pictures/tutorial_1.png)
 
-![image](Real-Time-Detection-of-Traffic-Violation-main/RT_DTV_website/public/pictures/tutorial_2.png)
+![image](RT_DTV_website/public/pictures/tutorial_2.png)
 
-![image](Real-Time-Detection-of-Traffic-Violation-main/RT_DTV_website/public/pictures/tutorial_3.png)
+![image](RT_DTV_website/public/pictures/tutorial_3.png)
