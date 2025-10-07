@@ -58,11 +58,6 @@ b. 輸入帳密後，進到首頁
 
 a. 執行.../RT_DTV_website/public/python/main.py輸出的圖片會存在.../RT_DTV_website/public/output/error/影片名稱/violation
 
-
-b. 將輸出圖片都移出影片檔的資料夾至.../RT_DTV_website/public/videos/result即可顯示在違規管理中
-
-   (這個部分的串接還在調整中，目前需要先手動移檔案)
-
 ### 步驟6: 影片來源
 
 a. 欲顯示在四格即時影像的影片須放在.../RT_DTV_website/public/videos/folder1~4
