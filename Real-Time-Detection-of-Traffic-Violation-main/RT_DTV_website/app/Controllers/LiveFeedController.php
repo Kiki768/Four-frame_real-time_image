@@ -52,10 +52,11 @@ class LiveFeedController extends BaseController
     log_message('info', 'start_detection method called');
 
     // 資料夾名稱設定為 'error'
-    $video_name = 'C:\\Users\\vicky\\Desktop\\PJ74\\Real-Time-Detection-of-Traffic-Violation-main\\RT_DTV_website\\public\\python\\error';  
-    $python = 'C:\\Users\\vicky\\anaconda3\\envs\\pj11\\python.exe';
-    $script = 'C:\\Users\\vicky\\Desktop\\PJ74\\Real-Time-Detection-of-Traffic-Violation-main\\RT_DTV_website\\public\\python\\main.py';
-    $workingDir = 'C:\\Users\\vicky\\Desktop\\PJ74\\Real-Time-Detection-of-Traffic-Violation-main\\RT_DTV_website\\public\\python';
+    $video_name = 'C:\\third\\Project\\Real-Time-Detection-of-Traffic-Violation-main\\RT_DTV_website\\public\\python\\error';  
+    $python     = 'C:\\Users\\User20240709\\anaconda3\\envs\\rt_dtv\\python.exe';
+    $script     = 'C:\\third\\Project\\Real-Time-Detection-of-Traffic-Violation-main\\RT_DTV_website\\public\\python\\main.py';
+    $workingDir = 'C:\\third\\Project\\Real-Time-Detection-of-Traffic-Violation-main\\RT_DTV_website\\public\\python';
+
 
     // 設定 log 文件儲存路徑
     $logDir = WRITEPATH . 'logs';
@@ -106,25 +107,5 @@ return $this->response->setJSON([
         return $this->response->setJSON($history);
     }
 
-
-    // public function stop()
-    // {
-    //     $storage = WRITEPATH.'detection';
-    //     $pidFile = $storage.DIRECTORY_SEPARATOR.'detector.pid';
-    //     $lockFile= $storage.DIRECTORY_SEPARATOR.'detector.lock';
-
-    //     $pid = file_exists($pidFile) ? trim(@file_get_contents($pidFile)) : '';
-    //     if ($pid !== '') {
-    //         // /T 連同子程序一併殺掉（cmd.exe -> python.exe）
-    //         exec('taskkill /PID '.((int)$pid).' /F /T');
-    //     }
-    //     @unlink($pidFile);
-    //     @unlink($lockFile); // 以防卡住
-
-    //     return $this->response->setJSON(['ok'=>true,'msg'=>'Stopped.'.($pid? " PID $pid":' (no pid)')]);
-    // }
-
-
-    
 
 }

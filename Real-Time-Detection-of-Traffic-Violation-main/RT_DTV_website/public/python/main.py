@@ -5,6 +5,15 @@ import pandas as pd
 import argparse  # 用於解析 command line 引數
 from car_track import car_track
 import shutil
+import sqlite3
+import random, string
+
+# 你的 SQLite 檔
+DB_PATH = r"C:\third\Project\Real-Time-Detection-of-Traffic-Violation-main\RT_DTV_website\writable\database\news.db"
+
+# 讓相對路徑以 public 為基準（避免換電腦路徑壞掉）
+BASE_PUBLIC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 # import torch
 # print(torch.cuda.is_available())  # 如果是 False，表示 PyTorch 沒有 CUDA 支援
@@ -12,6 +21,57 @@ import shutil
 # print(torch.backends.cudnn.enabled)  # 檢查 cuDNN 是否可用
 
 # os._exit(0)
+def random_plate():
+    letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+    numbers = ''.join(random.choices(string.digits, k=4))
+    return f"{letters}-{numbers}"
+
+def insert_violation_images(output_folder):
+    """
+    掃描 output_folder/violation 下的所有圖片，逐張寫入 violation_reports
+    欄位規則：
+      - image_blob: 圖片二進位
+      - image_rel_path: 以 public 為基準的相對路徑
+      - license_plate: 隨機 (ABC-1234)
+      - vehicle_type: '汽車'
+      - violation_time / owner_name / owner_address / video_id: 先 None
+    """
+    violation_dir = os.path.join(output_folder, "violation")
+    if not os.path.isdir(violation_dir):
+        print(f"[INFO] 沒有 violation 目錄：{violation_dir}")
+        return 0
+
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    inserted = 0
+
+    for fname in os.listdir(violation_dir):
+        if not fname.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp', '.webp')):
+            continue
+
+        fpath = os.path.join(violation_dir, fname)
+        with open(fpath, "rb") as f:
+            blob = f.read()
+
+        # 轉成相對於 public 的路徑，之後若改存檔案可直接用這欄位
+        rel_path = os.path.relpath(fpath, start=BASE_PUBLIC).replace("\\", "/")
+
+        roads = ["A", "B", "C", "D"]
+        road = random.choice(roads)
+
+        cur.execute("""
+            INSERT INTO violation_reports
+            (video_id, violation_time, license_plate, vehicle_type,
+            owner_name, owner_address, image_blob, image_rel_path, road)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (None, None, random_plate(), "汽車", None, None, blob, rel_path, road))
+        inserted += 1
+        print(f"[DB] Inserted {rel_path}")
+
+    conn.commit()
+    conn.close()
+    print(f"[DB] ✅ 本影片共寫入 {inserted} 張")
+    return inserted
 
 def make_sub_dir(output_folder, save_paths):
     #依照 --save 去創建 turn_info_folder, car_img_folder, light_info_folder
@@ -93,7 +153,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # 獲取當前時間，記錄為程式開始執行的時間
-start_time = time.time()
+# start_time = time.time()
 
 # 取得從命令行參數 --name 指定的輸入資料夾名稱
 input_folder = args.name
@@ -117,9 +177,6 @@ input_folder_name = os.path.basename(input_folder)
 
 # 在目前目錄下建立存放所有結果的資料夾路徑，路徑結構為 "current_dir/output/input_folder_name"
 all_output_folder = os.path.join(current_dir, "output", input_folder_name) # 存所有結果的資料夾
-
-# all_output_folder = os.path.join("E:/College_Project", "output", input_folder_name) # 存所有結果的資料夾
-
 # 建立存放結果的資料夾，若資料夾已存在則不拋出例外
 os.makedirs(all_output_folder, exist_ok=True)
 
@@ -149,14 +206,11 @@ for filename in os.listdir(input_folder):
         video_path = os.path.join(input_folder, filename)
         # 引用在 main/car_track.py 內的 car_track 函數
         car_track(video_path, output_folder, args.save, args.turn)
-        
-
-        
-
+        # 跑完一支影片後，把該影片產生的違規圖片寫入資料庫
+        insert_violation_images(output_folder)
 
 
-end_time = time.time()
-duration_seconds = end_time - start_time
+# end_time = time.time()
+# duration_seconds = end_time - start_time
 
 # print("Time：", duration_seconds, "秒")  
-print("Time: ", duration_seconds, " seconds")  

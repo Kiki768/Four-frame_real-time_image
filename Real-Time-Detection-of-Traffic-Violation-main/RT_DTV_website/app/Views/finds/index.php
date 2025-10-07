@@ -1,37 +1,31 @@
 <?= $this->extend('template') ?>
 <?= $this->section('content') ?>
 
-    <div class = find-container>
-         <!-- 顯示錯誤訊息 -->
-         <?php if (session()->getFlashdata('error')): ?>
-            <div style="color: red;">
-                <?= session()->getFlashdata('error') ?>
-            </div>
-            <br>
-        <?php endif; ?>
-        <form action="FindController/find_license_plate" method="post">
-            <select name="videoSelect" class = "form-select form-select-focus"  style = "width: 100% ; display:inline-block">
-                <option value="">請選擇路口及時間</option>
-                <?php 
-                    foreach($row as $i) 
-                        echo '<option value='.$i['road_name'].'/'.$i['date'].' required>'.$i['road_name'].'---'.$i['date'].'</option>'
-                ?>
-            </select><br><br>
-            <input name="road_name" type="hidden" required><br>
-            <input name="date" type="hidden" required><br>
-            <input type="submit" value="Choose"  onclick = postData() class = "btn btn-secondary">
-            
-        </form>
+<div class="find-container">
+  <!-- 錯誤訊息 -->
+  <?php if (session()->getFlashdata('error')): ?>
+      <div style="color:red;">
+          <?= session()->getFlashdata('error') ?>
+      </div>
+      <br>
+  <?php endif; ?>
 
-    </div>
-    <script>
-    function postData()
-    {
-        var s = document.getElementsByTagName('select');
-        var arr = s[0].value.split('/');
-        var btn = document.getElementsByTagName('input');
-        btn[0].value = arr[0];
-        btn[1].value = arr[1];
-    }
-</script>
+  <form method="get" action="<?= site_url('find/find_license_plate') ?>">
+      <label>路口：</label>
+      <select name="road_name" id="roadSelect" class="form-select" style="width:50%" required>
+          <option value="" selected hidden></option>  <!-- 預設空白 -->
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+          <option value="D">D</option>
+          <option value="show_all_car">顯示所有路口車輛</option>
+      </select>
+
+      <label style="margin-left:10px;">日期：</label>
+      <input type="date" name="date" class="form-control" style="width:200px;display:inline-block;">
+
+      <button type="submit" class="btn btn-secondary" style="margin-left:10px;">查詢</button>
+  </form>
+</div>
+
 <?= $this->endSection() ?>

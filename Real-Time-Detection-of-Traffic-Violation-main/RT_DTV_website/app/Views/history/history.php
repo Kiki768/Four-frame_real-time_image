@@ -21,7 +21,7 @@
     document.addEventListener('DOMContentLoaded', loadHistory);
 
     async function loadHistory() {
-        const response = await fetch('/LiveFeedController/get_history');
+        const response = await fetch('<?= site_url("violation/history") ?>');
         const data = await response.json();
 
         const tbody = document.getElementById('historyTable');
@@ -37,5 +37,6 @@
             tbody.appendChild(tr);
         });
     }
+
 </script>
 <?= $this->endSection() ?>
