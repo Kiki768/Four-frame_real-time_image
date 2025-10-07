@@ -1,7 +1,7 @@
 <?= $this->extend('template') ?>
 <?= $this->section('content') ?>
 
-<h2 style="color:black;">交通科技執法轉彎車輛違規判斷</h2>
+<h2 style="color:black; text-align:center;">交通科技執法轉彎車輛違規判斷</h2>
 
 
 <!-- 四格影片區塊 -->
