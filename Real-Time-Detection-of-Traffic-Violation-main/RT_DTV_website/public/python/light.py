@@ -96,7 +96,7 @@ def is_light(num_list):
     if total == 0:
         return 1  # 跳過，當作合法，不討論是否違規
     
-    if num_list.count(1) / total > threshold:
+    if num_list.count(1) / total >= threshold:
         return 1
     else:
         return 0
