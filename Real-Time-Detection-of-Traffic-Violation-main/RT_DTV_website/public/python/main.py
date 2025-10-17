@@ -209,6 +209,11 @@ for filename in os.listdir(input_folder):
         # 跑完一支影片後，把該影片產生的違規圖片寫入資料庫
         insert_violation_images(output_folder)
 
+        
+
+        
+
+
 
 # end_time = time.time()
 # duration_seconds = end_time - start_time
