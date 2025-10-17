@@ -37,7 +37,7 @@ img { max-width: 800px; height: auto; }
         </p>
     </div>
 
-    <p id="lastUpdatedTime" class="muted"></p>
+    <!-- <p id="lastUpdatedTime" class="muted"></p> -->
 
     <div class="controls">
         <button id="prevBtn">⬅️ 上一張</button>
@@ -81,7 +81,7 @@ img { max-width: 800px; height: auto; }
   const imgEl    = document.getElementById('violationImage');
   const noMsgEl  = document.getElementById('noViolationMsg');
   const details  = document.getElementById('violationDetails');
-  const lastTime = document.getElementById('lastUpdatedTime');
+//   const lastTime = document.getElementById('lastUpdatedTime');
 
   const timeEl   = document.getElementById('violationTime');
   const plateEl  = document.getElementById('licensePlate');
@@ -133,7 +133,7 @@ img { max-width: 800px; height: auto; }
         noMsgEl.style.display = 'none';
         imgEl.style.display = 'inline-block';
 
-        lastTime.textContent = '最後更新：' + new Date().toLocaleString();
+        // lastTime.textContent = '最後更新：' + new Date().toLocaleString();
         setControlsEnabled(true);           // 有資料：啟用按鈕
     }
     //在沒有違規圖片時不要有按鈕
