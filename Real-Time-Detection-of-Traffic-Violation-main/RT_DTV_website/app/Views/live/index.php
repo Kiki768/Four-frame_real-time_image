@@ -8,20 +8,20 @@
 <div class="video-wrapper" style="width: 140%; max-width: 1200px; margin: 0 auto;">
     <div class="grid-container">
         <div class="video-cell">
-            <video id="video1A" muted playsinline></video>
-            <video id="video1B" muted playsinline style="display:none;"></video>
+            <video id="video1A" muted playsinline preload="auto"></video>
+            <video id="video1B" muted playsinline  preload="auto" style="display:none;"></video>
         </div>
         <div class="video-cell">
-            <video id="video2A" muted playsinline></video>
-            <video id="video2B" muted playsinline style="display:none;"></video>
+            <video id="video2A" muted playsinline preload="auto"></video>
+            <video id="video2B" muted playsinline preload="auto" style="display:none;"></video>
         </div>
         <div class="video-cell">
-            <video id="video3A" muted playsinline></video>
-            <video id="video3B" muted playsinline style="display:none;"></video>
+            <video id="video3A" muted playsinline preload="auto"></video>
+            <video id="video3B" muted playsinline preload="auto" style="display:none;"></video>
         </div>
         <div class="video-cell">
-            <video id="video4A" muted playsinline></video>
-            <video id="video4B" muted playsinline style="display:none;"></video>
+            <video id="video4A" muted playsinline preload="auto"></video>
+            <video id="video4B" muted playsinline preload="auto" style="display:none;"></video>
         </div>
     </div>
 </div>
@@ -81,38 +81,42 @@ console.log("✅ JavaScript 載入了");
         }
     }
 
-    function setupDualVideoLoop(idA, idB, sources) {
-        const videoA = document.getElementById(idA);
-        const videoB = document.getElementById(idB);
-        let index = 0;
-        let active = videoA;
-        let standby = videoB;
+   function setupDualVideoLoop(idA, idB, sources) {
+    const videoA = document.getElementById(idA);
+    const videoB = document.getElementById(idB);
+    let index = 0;
+    let active = videoA;
+    let standby = videoB;
 
-        function preloadAndSwap() {
-            standby.src = sources[index];
-            standby.load();
+    function preloadAndSwap() {
+        const nextIndex = (index + 1) % sources.length;
+        standby.src = sources[nextIndex];
+        standby.load();
 
-            standby.onloadeddata = () => {
-                standby.play();
-                standby.style.display = "block";
-                active.pause();
-                active.style.display = "none";
+        standby.onloadeddata = () => {
+            standby.play();
+            standby.style.display = "block";
+            active.pause();
+            active.style.display = "none";
 
-                // 交換 active/standby
-                [active, standby] = [standby, active];
-                index = (index + 1) % sources.length;
+            // 交換 active/standby
+            [active, standby] = [standby, active];
+            index = nextIndex;
 
-                active.onended = () => preloadAndSwap();
-            };
-        }
-
-        // 初始化第一段影片
-        active.src = sources[index];
-        active.load();
-        active.play();
-        index = (index + 1) % sources.length;
-        active.onended = () => preloadAndSwap();
+            active.onended = () => preloadAndSwap();
+        };
     }
+
+    // 初始化第一段影片
+    active.src = sources[index];
+    active.load();
+    active.play();
+    active.onended = () => preloadAndSwap();
+    
+    // 預先載入第二個影片
+    standby.src = sources[(index + 1) % sources.length];
+    standby.load();
+}
 
     document.addEventListener("DOMContentLoaded", () => {
         console.log("DOMContentLoaded 事件觸發，執行 loadVideos()");
